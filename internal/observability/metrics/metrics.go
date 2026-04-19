@@ -59,15 +59,28 @@ func Handler() gin.HandlerFunc {
 	return func(c *gin.Context) { h.ServeHTTP(c.Writer, c.Request) }
 }
 
+// skipPaths are observability/infrastructure endpoints that shouldn't count
+// against our own HTTP metrics — scraping /metrics on a schedule would
+// otherwise dominate the counters and keep in_flight artificially > 0.
+var skipPaths = map[string]struct{}{
+	"/metrics": {},
+	"/health":  {},
+}
+
 func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		path := c.FullPath()
+		if _, skip := skipPaths[path]; skip {
+			c.Next()
+			return
+		}
+
 		start := time.Now()
 		inFlight.Inc()
 		defer inFlight.Dec()
 
 		c.Next()
 
-		path := c.FullPath()
 		if path == "" {
 			path = "unknown"
 		}
