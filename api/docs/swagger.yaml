@@ -1,0 +1,128 @@
+basePath: /api/v1
+definitions:
+  CreateTodoRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      title:
+        maxLength: 255
+        minLength: 3
+        type: string
+    required:
+    - title
+    type: object
+  ErrorBody:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/FieldError'
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/ErrorBody'
+      success:
+        example: false
+        type: boolean
+    type: object
+  FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+      tag:
+        type: string
+    type: object
+  SuccessResponse:
+    properties:
+      data: {}
+      success:
+        example: true
+        type: boolean
+    type: object
+  TodoResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      done:
+        type: boolean
+      id:
+        type: string
+      title:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Modular monolith backend for learning
+  title: Backend API
+  version: "1.0"
+paths:
+  /todos:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: todo payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateTodoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/TodoResponse'
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Create a todo
+      tags:
+      - todos
+  /todos/{id}:
+    get:
+      parameters:
+      - description: todo ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/TodoResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get a todo by ID
+      tags:
+      - todos
+swagger: "2.0"

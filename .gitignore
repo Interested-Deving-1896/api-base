@@ -1,0 +1,19 @@
+# Binaries
+/bin/
+/backend
+
+# Env
+.env
+
+# Uploads and temp files
+/uploads/
+/tmp/
+*.log
+
+# Test coverage
+coverage.out
+
+# IDEs
+.idea/
+.vscode/
+*.swp
