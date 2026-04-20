@@ -13,6 +13,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/topboyasante/api-base/api/docs" // blank import so swaggo docs are registered
 
@@ -23,6 +25,10 @@ import (
 	"github.com/topboyasante/api-base/internal/platform/postgres"
 	platformredis "github.com/topboyasante/api-base/internal/platform/redis"
 	platformvalidator "github.com/topboyasante/api-base/internal/platform/validator"
+	"github.com/topboyasante/api-base/internal/providers/storage"
+	"github.com/topboyasante/api-base/internal/providers/storage/local"
+	"github.com/topboyasante/api-base/internal/providers/storage/r2"
+	"github.com/topboyasante/api-base/internal/providers/storage/s3"
 	"github.com/topboyasante/api-base/internal/shared/idempotency"
 	"github.com/topboyasante/api-base/internal/shared/middleware"
 	"github.com/topboyasante/api-base/internal/shared/ratelimit"
@@ -45,6 +51,16 @@ func Build(cfg *config.Config) (*App, error) {
 	rdb, err := platformredis.New(cfg.Redis)
 	if err != nil {
 		return nil, err
+	}
+
+	storageReg := storage.NewRegistry()
+	storageReg.Register("s3", s3.New)
+	storageReg.Register("local", local.New)
+	storageReg.Register("r2", r2.New)
+
+	activeStorage, err := storageReg.Resolve(cfg.Storage.Provider, cfg.Storage.Options["s3"])
+	if err != nil {
+		return nil, fmt.Errorf("resolve storage: %w", err)
 	}
 
 	// 3. Shared utilities
@@ -95,9 +111,10 @@ func Build(cfg *config.Config) (*App, error) {
 	todoHandler.RegisterMutationRoutes(mutations)
 
 	return &App{
-		router: r,
-		db:     db,
-		redis:  rdb,
-		port:   cfg.App.Port,
+		router:  r,
+		db:      db,
+		redis:   rdb,
+		port:    cfg.App.Port,
+		storage: activeStorage,
 	}, nil
 }

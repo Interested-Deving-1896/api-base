@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"github.com/topboyasante/api-base/internal/platform/server"
+	"github.com/topboyasante/api-base/internal/providers/storage"
 )
 
 type App struct {
@@ -19,6 +20,8 @@ type App struct {
 	db     *sqlx.DB
 	redis  *redis.Client
 	port   string
+
+	storage storage.Provider
 }
 
 func (a *App) Run() error {

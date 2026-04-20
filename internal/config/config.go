@@ -26,6 +26,8 @@ type Config struct {
 	DB        DBConfig
 	Redis     RedisConfig
 	RateLimit RateLimitConfig
+	Storage   StorageConfig
+	Payment   PaymentConfig
 }
 
 type AppConfig struct {
@@ -49,6 +51,20 @@ type RedisConfig struct {
 
 type RateLimitConfig struct {
 	PerIPHourly int
+}
+
+type StorageConfig struct {
+	Provider string                       // "local" | "s3" | ...
+	Options  map[string]map[string]string // provider-specific: path, bucket, region, keys...
+}
+
+type PaymentConfig struct {
+	CardProvider        string // e.g. "stripe"
+	MobileMoneyProvider string // e.g. "paystack"
+
+	// Options per provider, keyed by provider name.
+	// Example: Options["stripe"]["secret_key"]
+	Options map[string]map[string]string
 }
 
 func Load() (*Config, error) {
@@ -81,6 +97,15 @@ func Load() (*Config, error) {
 		RateLimit: RateLimitConfig{
 			PerIPHourly: perIP,
 		},
+		Storage: StorageConfig{
+			Provider: getEnvOrDefault("STORAGE_PROVIDER", "local"),
+			Options:  buildStorageOptions(),
+		},
+		Payment: PaymentConfig{
+			CardProvider:        getEnvOrDefault("PAYMENT_CARD_PROVIDER", "stripe"),
+			MobileMoneyProvider: getEnvOrDefault("PAYMENT_MOBILE_MONEY_PROVIDER", "paystack"),
+			Options:             buildPaymentOptions(),
+		},
 	}, nil
 }
 
@@ -97,4 +122,63 @@ func getEnvOrDefault(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// buildStorageOptions loads options for every storage provider whose env is
+// present. STORAGE_PROVIDER picks the default; other providers stay loaded so
+// individual services can opt into them via the registry.
+//
+// "local" is always available — handy as a dev/test fallback even when no
+// env is set.
+func buildStorageOptions() map[string]map[string]string {
+	opts := map[string]map[string]string{
+		"local": {
+			"path":     getEnvOrDefault("STORAGE_LOCAL_PATH", "./uploads"),
+			"base_url": getEnvOrDefault("STORAGE_LOCAL_BASE_URL", "/files"),
+		},
+	}
+
+	if bucket := os.Getenv("STORAGE_S3_BUCKET"); bucket != "" {
+		opts["s3"] = map[string]string{
+			"bucket":     bucket,
+			"region":     os.Getenv("STORAGE_S3_REGION"),
+			"access_key": os.Getenv("STORAGE_S3_ACCESS_KEY"),
+			"secret_key": os.Getenv("STORAGE_S3_SECRET_KEY"),
+			"endpoint":   os.Getenv("STORAGE_S3_ENDPOINT"),
+		}
+	}
+
+	if accountID := os.Getenv("STORAGE_R2_ACCOUNT_ID"); accountID != "" {
+		opts["r2"] = map[string]string{
+			"account_id": accountID,
+			"bucket":     os.Getenv("STORAGE_R2_BUCKET"),
+			"access_key": os.Getenv("STORAGE_R2_ACCESS_KEY"),
+			"secret_key": os.Getenv("STORAGE_R2_SECRET_KEY"),
+			"public_url": os.Getenv("STORAGE_R2_PUBLIC_URL"),
+		}
+	}
+
+	return opts
+}
+
+// buildPaymentOptions follows the same rule as storage: load whichever
+// processors have credentials present, regardless of which one is the default.
+func buildPaymentOptions() map[string]map[string]string {
+	opts := map[string]map[string]string{}
+
+	if key := os.Getenv("STRIPE_SECRET_KEY"); key != "" {
+		opts["stripe"] = map[string]string{
+			"secret_key":     key,
+			"webhook_secret": os.Getenv("STRIPE_WEBHOOK_SECRET"),
+		}
+	}
+
+	if key := os.Getenv("PAYSTACK_SECRET_KEY"); key != "" {
+		opts["paystack"] = map[string]string{
+			"secret_key":     key,
+			"webhook_secret": os.Getenv("PAYSTACK_WEBHOOK_SECRET"),
+		}
+	}
+
+	return opts
 }
