@@ -2,7 +2,6 @@
 
 A modular-monolith Go backend scaffold. Gin + Postgres + Redis, wired with observability, rate limiting, idempotency, embedded migrations, and auto-generated API docs.
 
-For a step-by-step walkthrough of how every piece was built, see [`guide.md`](./guide.md).
 
 ---
 
