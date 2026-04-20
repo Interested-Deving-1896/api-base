@@ -1,6 +1,9 @@
 package storage
 
-import "io"
+import (
+	"io"
+	"time"
+)
 
 // UploadInput bundles everything Upload needs into one struct.
 //
@@ -73,4 +76,12 @@ type FileMetadata struct {
 	// Helpful when debugging — e.g. a file uploaded in dev (local) won't
 	// exist in prod (s3), and this field tells you immediately.
 	Provider string
+}
+
+type UploadResult struct {
+	Key      string    `json:"key"`
+	URL      string    `json:"url"`
+	Size     int64     `json:"size"`
+	Provider string    `json:"provider"`
+	Uploaded time.Time `json:"uploaded_at"`
 }

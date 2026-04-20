@@ -20,6 +20,7 @@ import (
 
 	"github.com/topboyasante/api-base/internal/config"
 	"github.com/topboyasante/api-base/internal/modules/todo"
+	"github.com/topboyasante/api-base/internal/modules/uploads"
 	"github.com/topboyasante/api-base/internal/observability/logger"
 	"github.com/topboyasante/api-base/internal/observability/metrics"
 	"github.com/topboyasante/api-base/internal/platform/postgres"
@@ -70,6 +71,8 @@ func Build(cfg *config.Config) (*App, error) {
 
 	// 4. Modules
 	todoHandler := todo.New(db, v)
+	uploadsHandler := uploads.New(activeStorage)
+
 
 	// 5. Router
 	if cfg.App.Env == "production" {
@@ -109,6 +112,7 @@ func Build(cfg *config.Config) (*App, error) {
 	// Write endpoints: rate-limited AND idempotency-protected
 	mutations := api.Group("", idempotency.Middleware(idemStore))
 	todoHandler.RegisterMutationRoutes(mutations)
+	uploadsHandler.RegisterRoutes(mutations)
 
 	return &App{
 		router:  r,

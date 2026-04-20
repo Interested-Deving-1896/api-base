@@ -62,6 +62,19 @@ definitions:
       title:
         type: string
     type: object
+  UploadResult:
+    properties:
+      key:
+        type: string
+      provider:
+        type: string
+      size:
+        type: integer
+      uploaded_at:
+        type: string
+      url:
+        type: string
+    type: object
 info:
   contact: {}
   description: Modular monolith backend for learning
@@ -125,4 +138,43 @@ paths:
       summary: Get a todo by ID
       tags:
       - todos
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Accepts a multipart file and stores it via the configured storage
+        provider (local, s3, or r2). Max size 10MB.
+      parameters:
+      - description: file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/UploadResult'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Upload a file
+      tags:
+      - uploads
 swagger: "2.0"
