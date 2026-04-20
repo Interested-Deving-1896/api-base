@@ -1,0 +1,42 @@
+// Package handler is the HTTP-facing layer of the {{.NameLower}} module.
+// Handlers stay thin: parse input, call the service, send a response.
+package handler
+
+import (
+	"github.com/gin-gonic/gin"
+	govalidator "github.com/go-playground/validator/v10"
+
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
+	"{{.ModulePath}}/internal/shared/response"
+)
+
+// SuccessResponse is a swaggo helper documenting the success envelope.
+type SuccessResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    any  `json:"data"`
+}
+
+// ErrorResponse documents the error envelope.
+type ErrorResponse struct {
+	Success bool               `json:"success" example:"false"`
+	Error   response.ErrorBody `json:"error"`
+}
+
+type Handler struct {
+	svc       service.Service
+	validator *govalidator.Validate
+}
+
+func New(svc service.Service, v *govalidator.Validate) *Handler {
+	return &Handler{svc: svc, validator: v}
+}
+
+// Ping godoc
+// @Summary      {{.NamePascal}} health check
+// @Tags         {{.NamePlural}}
+// @Produce      json
+// @Success      200 {object} handler.SuccessResponse
+// @Router       /{{.NamePlural}}/ping [get]
+func (h *Handler) Ping(c *gin.Context) {
+	response.Success(c, 200, gin.H{"module": "{{.NameLower}}", "status": "ok"})
+}

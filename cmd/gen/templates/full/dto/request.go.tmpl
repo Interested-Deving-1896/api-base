@@ -1,0 +1,15 @@
+// Package dto holds the data transfer objects for the {{.NameLower}} module. These
+// are the structs clients send us (requests) and the structs we send back
+// (responses). They exist so domain models can evolve independently of
+// the API contract.
+//
+// Request DTOs carry validation tags (binding:"required,min=3"). Gin
+// validates them automatically when we call c.ShouldBindJSON. If
+// validation fails, the handler responds with a 422 via
+// response.ValidationError.
+package dto
+
+type Create{{.NamePascal}}Request struct {
+	Title       string `json:"title" binding:"required,min=3,max=255"`
+	Description string `json:"description" binding:"max=2000"`
+}

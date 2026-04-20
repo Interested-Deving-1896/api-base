@@ -1,0 +1,18 @@
+// Package domain holds the internal business model for the {{.NameLower}} module.
+// This struct represents a {{.NamePascal}} as our code thinks about it, independent
+// of how it's stored in the database or sent over the API.
+//
+// Domain models never leave this module. They are not sent as API
+// responses (that's what DTOs are for). They are not imported by other
+// modules (those modules use the {{.NameLower}}.{{.NamePascal}}Service contract instead).
+package domain
+
+import "time"
+
+type {{.NamePascal}} struct {
+	ID          string
+	Title       string
+	Description string
+	Done        bool
+	CreatedAt   time.Time
+}

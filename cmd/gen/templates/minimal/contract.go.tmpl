@@ -1,0 +1,8 @@
+// Package {{.NameLower}} exposes the public contract for the {{.NameLower}} module.
+// Other modules that need to call into {{.NameLower}} import {{.NameLower}}.{{.NamePascal}}Service,
+// never internal/modules/{{.NameLower}}/service directly.
+package {{.NameLower}}
+
+import "{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
+
+type {{.NamePascal}}Service = service.Service

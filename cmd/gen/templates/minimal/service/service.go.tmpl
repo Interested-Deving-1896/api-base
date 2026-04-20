@@ -1,0 +1,14 @@
+// Package service holds the business logic for the {{.NameLower}} module.
+// Minimal scaffold: no dependencies. Add repository / external clients as
+// constructor arguments when the module grows.
+package service
+
+type Service interface {
+	// TODO: add domain methods.
+}
+
+type service struct{}
+
+func New() Service {
+	return &service{}
+}

@@ -2,6 +2,14 @@
 
 A modular-monolith Go backend scaffold. Gin + Postgres + Redis, wired with observability, rate limiting, idempotency, embedded migrations, and auto-generated API docs.
 
+This repo is a **GitHub template**. Click **Use this template** on the repo page to start a new project, or clone it manually and rename the Go module:
+
+```bash
+go mod edit -module github.com/<you>/<your-api>
+# rewrite imports
+find . -type f -name '*.go' -exec sed -i '' 's|github.com/topboyasante/api-base|github.com/<you>/<your-api>|g' {} +
+go mod tidy
+```
 
 ---
 
@@ -39,6 +47,8 @@ make dev
 | `make migrate-up`   | apply pending migrations via `golang-migrate`             |
 | `make migrate-down` | roll back the last migration                              |
 | `make lint`         | `go vet ./...`                                            |
+| `make gen`          | scaffold a new feature module (see below)                 |
+| `make gen-check`    | verify generator templates stay in sync with `todo/`      |
 
 ---
 
@@ -110,8 +120,31 @@ For staging/production, a manually-triggered workflow lives at `.github/workflow
 
 ## Adding a new module
 
-1. `mkdir internal/modules/<name>/{domain,dto,handler,mapper,repository,service}`
-2. Follow the shape of `internal/modules/todo/`.
-3. Register its routes and construct its handler in `internal/app/wire.go`.
-4. Add a migration if you need schema changes: `internal/platform/postgres/migrations/0003_<name>.up.sql` + `.down.sql`.
-5. `make docs` to pick up new swaggo annotations.
+Use the generator. `todo/` is the reference module — the generator's `full/` templates render byte-for-byte to it, and `make gen-check` enforces that.
+
+```bash
+# full CRUD scaffold (domain, dto, handler, mapper, repository, service)
+make gen MODULE=users
+
+# module already plural / irregular plural
+make gen MODULE=post PLURAL=posts
+make gen MODULE=entity PLURAL=entities
+
+# minimal scaffold (no DB layer) — for endpoints that proxy, aggregate, or have no state
+make gen MODULE=health MINIMAL=1
+```
+
+After running, the generator prints the 3 snippets to paste into `internal/app/wire.go` (import, construct, register routes). Then:
+
+1. Add a migration if the module needs schema: `internal/platform/postgres/migrations/NNNN_<plural>.up.sql` + `.down.sql`.
+2. `make docs` to pick up new swaggo annotations.
+
+### Keeping the generator honest
+
+`todo/` stays the canonical reference module. If you change `todo/`, update `cmd/gen/templates/full/` to match — `make gen-check` diffs the generator's output against `todo/` byte-for-byte and fails CI on drift.
+
+---
+
+## License
+
+MIT — see [`LICENSE`](./LICENSE).

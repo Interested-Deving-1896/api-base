@@ -1,0 +1,51 @@
+// Package service holds the business logic for the {{.NameLower}} module. Handlers
+// call into the Service interface; the service calls into the Repository.
+//
+// The service is where domain rules live: default values, cross-field
+// validation, coordination between the database and other subsystems. For
+// now, "create a {{.NameLower}}" is straightforward — we set an ID and timestamp,
+// then save. As the business grows, this is where those rules will land.
+package service
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/domain"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/repository"
+	"{{.ModulePath}}/internal/observability/logger"
+)
+
+type Service interface {
+	Create(ctx context.Context, title, description string) (*domain.{{.NamePascal}}, error)
+	GetByID(ctx context.Context, id string) (*domain.{{.NamePascal}}, error)
+}
+
+type service struct {
+	repo repository.Repository
+}
+
+func New(r repository.Repository) Service {
+	return &service{repo: r}
+}
+
+func (s *service) Create(ctx context.Context, title, description string) (*domain.{{.NamePascal}}, error) {
+	t := &domain.{{.NamePascal}}{
+		ID:          uuid.NewString(),
+		Title:       title,
+		Description: description,
+		Done:        false,
+		CreatedAt:   time.Now().UTC(),
+	}
+	if err := s.repo.Create(ctx, t); err != nil {
+		logger.FromContext(ctx).Error("{{.NameLower}}_create_failed", "err", err.Error())
+		return nil, err
+	}
+	logger.FromContext(ctx).Info("{{.NameLower}}_created", "{{.NameLower}}_id", t.ID)
+	return t, nil
+}
+
+func (s *service) GetByID(ctx context.Context, id string) (*domain.{{.NamePascal}}, error) {
+	return s.repo.GetByID(ctx, id)
+}

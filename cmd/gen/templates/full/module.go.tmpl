@@ -1,0 +1,18 @@
+package {{.NameLower}}
+
+import (
+	govalidator "github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/handler"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/repository"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
+)
+
+// New wires the {{.NameLower}} module's internals and returns its HTTP handler.
+// Called from internal/app/wire.go during application startup.
+func New(db *sqlx.DB, v *govalidator.Validate) *handler.Handler {
+	repo := repository.New(db)
+	svc := service.New(repo)
+	return handler.New(svc, v)
+}

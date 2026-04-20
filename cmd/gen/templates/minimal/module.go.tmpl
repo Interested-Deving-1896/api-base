@@ -1,0 +1,19 @@
+package {{.NameLower}}
+
+import (
+	govalidator "github.com/go-playground/validator/v10"
+
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/handler"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
+)
+
+// New wires the {{.NameLower}} module's internals and returns its HTTP handler.
+// Called from internal/app/wire.go during application startup.
+//
+// This is a minimal module — no domain / repository / mapper / dto layers.
+// Add them by hand (see internal/modules/todo/ for the full shape) once the
+// module needs persistence or a richer API surface.
+func New(v *govalidator.Validate) *handler.Handler {
+	svc := service.New()
+	return handler.New(svc, v)
+}

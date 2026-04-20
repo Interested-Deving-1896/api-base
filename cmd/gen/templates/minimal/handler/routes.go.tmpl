@@ -1,0 +1,9 @@
+package handler
+
+import "github.com/gin-gonic/gin"
+
+// RegisterQueryRoutes wires the read-only endpoints.
+func (h *Handler) RegisterQueryRoutes(r *gin.RouterGroup) {
+	g := r.Group("/{{.NamePlural}}")
+	g.GET("/ping", h.Ping)
+}

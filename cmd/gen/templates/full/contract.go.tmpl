@@ -1,0 +1,16 @@
+// Package {{.NameLower}} exposes the public contract for the {{.NameLower}} module — the
+// interface that other modules import when they need to talk to {{.NamePlural}}.
+//
+// If another module (say, a notification module) wants to look up a {{.NameLower}},
+// it takes a {{.NameLower}}.{{.NamePascal}}Service in its constructor. It never imports
+// internal/modules/{{.NameLower}}/service directly. This keeps module boundaries
+// clear and makes dependencies explicit.
+//
+// For now, no other module depends on {{.NamePlural}}, but defining the contract
+// from day one sets the habit.
+package {{.NameLower}}
+
+import "{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
+
+
+type {{.NamePascal}}Service = service.Service

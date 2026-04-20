@@ -1,0 +1,26 @@
+// Package mapper converts between domain models and DTOs.
+//
+// Two separate files would be overkill for now, but as the module grows
+// you might split this into {{.NameLower}}_to_dto.go and {{.NameLower}}_from_dto.go. For now,
+// one function is enough.
+//
+// IMPORTANT: the mapper is the ONLY place where domain <-> DTO conversion
+// happens. Handlers don't construct DTOs directly from domain fields; they
+// call the mapper. This way, if the domain model changes, only the mapper
+// needs updating.
+package mapper
+
+import (
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/domain"
+	"{{.ModulePath}}/internal/modules/{{.NameLower}}/dto"
+)
+
+func To{{.NamePascal}}Response(t *domain.{{.NamePascal}}) dto.{{.NamePascal}}Response {
+	return dto.{{.NamePascal}}Response{
+		ID:          t.ID,
+		Title:       t.Title,
+		Description: t.Description,
+		Done:        t.Done,
+		CreatedAt:   t.CreatedAt,
+	}
+}
