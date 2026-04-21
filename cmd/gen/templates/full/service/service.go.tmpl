@@ -18,7 +18,7 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, title, description string) (*domain.{{.NamePascal}}, error)
+	Create(ctx context.Context) (*domain.{{.NamePascal}}, error)
 	GetByID(ctx context.Context, id string) (*domain.{{.NamePascal}}, error)
 }
 
@@ -30,13 +30,12 @@ func New(r repository.Repository) Service {
 	return &service{repo: r}
 }
 
-func (s *service) Create(ctx context.Context, title, description string) (*domain.{{.NamePascal}}, error) {
+func (s *service) Create(ctx context.Context) (*domain.{{.NamePascal}}, error) {
+	now := time.Now().UTC()
 	t := &domain.{{.NamePascal}}{
-		ID:          uuid.NewString(),
-		Title:       title,
-		Description: description,
-		Done:        false,
-		CreatedAt:   time.Now().UTC(),
+		ID:        uuid.NewString(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 	if err := s.repo.Create(ctx, t); err != nil {
 		logger.FromContext(ctx).Error("{{.NameLower}}_create_failed", "err", err.Error())

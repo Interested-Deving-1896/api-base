@@ -1,4 +1,4 @@
-.PHONY: run dev build test docs docs-check migrate-up migrate-down lint gen gen-check
+.PHONY: run dev build test docs docs-check migrate-up migrate-down lint gen
 
 run:
 	go run ./cmd/api
@@ -31,6 +31,3 @@ lint:
 gen:
 	@test -n "$(MODULE)" || (echo "usage: make gen MODULE=<name> [MINIMAL=1] [PLURAL=<form>]" && exit 1)
 	@go run ./cmd/gen module $(MODULE) $(if $(MINIMAL),--minimal) $(if $(PLURAL),--plural $(PLURAL))
-
-gen-check:
-	@go run ./cmd/gen verify-todo-drift

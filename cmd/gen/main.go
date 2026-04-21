@@ -3,13 +3,9 @@
 // Usage:
 //
 //	gen module <name> [--minimal] [--plural <form>]
-//	gen verify-todo-drift
 //
 // Templates live under cmd/gen/templates/{full,minimal}/ and are embedded
-// into the binary. The reference module lives at internal/modules/todo/;
-// `gen verify-todo-drift` renders the full/ templates with Name=todo and
-// compares byte-for-byte against internal/modules/todo/, so CI can fail
-// if either drifts out of sync.
+// into the binary.
 package main
 
 import (
@@ -44,10 +40,6 @@ func main() {
 	switch os.Args[1] {
 	case "module":
 		if err := runModule(os.Args[2:]); err != nil {
-			fail(err)
-		}
-	case "verify-todo-drift":
-		if err := runDriftCheck(); err != nil {
 			fail(err)
 		}
 	default:
@@ -234,74 +226,9 @@ Next steps:%s
 `, d.Name, flavor, d.ModulePath, d.NameLower, ctor, routes, migrationNote)
 }
 
-func runDriftCheck() error {
-	tmp, err := os.MkdirTemp("", "gen-drift-*")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tmp)
-	modulePath, err := readModulePath()
-	if err != nil {
-		return err
-	}
-	d := data{
-		Name:       "todo",
-		NameLower:  "todo",
-		NamePascal: "Todo",
-		NamePlural: "todos",
-		ModulePath: modulePath,
-	}
-	if err := renderTree("full", tmp, d); err != nil {
-		return err
-	}
-	ref := filepath.Join("internal", "modules", "todo")
-	diffs := 0
-	err = filepath.WalkDir(tmp, func(p string, de fs.DirEntry, err error) error {
-		if err != nil || de.IsDir() {
-			return err
-		}
-		rel, _ := filepath.Rel(tmp, p)
-		genBytes, _ := os.ReadFile(p)
-		refBytes, refErr := os.ReadFile(filepath.Join(ref, rel))
-		if refErr != nil {
-			fmt.Fprintf(os.Stderr, "drift: generated %s is missing from internal/modules/todo/\n", rel)
-			diffs++
-			return nil
-		}
-		if !bytes.Equal(genBytes, refBytes) {
-			fmt.Fprintf(os.Stderr, "drift: %s differs\n", rel)
-			diffs++
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	err = filepath.WalkDir(ref, func(p string, de fs.DirEntry, err error) error {
-		if err != nil || de.IsDir() {
-			return err
-		}
-		rel, _ := filepath.Rel(ref, p)
-		if _, statErr := os.Stat(filepath.Join(tmp, rel)); statErr != nil {
-			fmt.Fprintf(os.Stderr, "drift: internal/modules/todo/%s is missing from templates\n", rel)
-			diffs++
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	if diffs > 0 {
-		return fmt.Errorf("drift detected: %d file(s); update cmd/gen/templates/full/ or internal/modules/todo/ to match", diffs)
-	}
-	fmt.Println("no drift")
-	return nil
-}
-
 func usage() {
 	fmt.Fprintln(os.Stderr, `usage:
-  gen module <name> [--minimal] [--plural <form>]
-  gen verify-todo-drift`)
+  gen module <name> [--minimal] [--plural <form>]`)
 }
 
 func fail(err error) {

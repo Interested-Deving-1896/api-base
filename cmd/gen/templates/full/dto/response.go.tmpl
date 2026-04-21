@@ -6,9 +6,7 @@ import "time"
 // but no validation tags. It also has no pointer to anything internal —
 // handlers build it via the mapper package.
 type {{.NamePascal}}Response struct {
-	ID          string    `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Done        bool      `json:"done"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

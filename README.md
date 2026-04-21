@@ -48,7 +48,6 @@ make dev
 | `make migrate-down` | roll back the last migration                              |
 | `make lint`         | `go vet ./...`                                            |
 | `make gen`          | scaffold a new feature module (see below)                 |
-| `make gen-check`    | verify generator templates stay in sync with `todo/`      |
 
 ---
 
@@ -120,7 +119,7 @@ For staging/production, a manually-triggered workflow lives at `.github/workflow
 
 ## Adding a new module
 
-Use the generator. `todo/` is the reference module — the generator's `full/` templates render byte-for-byte to it, and `make gen-check` enforces that.
+Use the generator. `todo/` is an example module showing the expected shape; the generator's `full/` templates produce a minimal version of the same structure.
 
 ```bash
 # full CRUD scaffold (domain, dto, handler, mapper, repository, service)
@@ -138,10 +137,6 @@ After running, the generator prints the 3 snippets to paste into `internal/app/w
 
 1. Add a migration if the module needs schema: `internal/platform/postgres/migrations/NNNN_<plural>.up.sql` + `.down.sql`.
 2. `make docs` to pick up new swaggo annotations.
-
-### Keeping the generator honest
-
-`todo/` stays the canonical reference module. If you change `todo/`, update `cmd/gen/templates/full/` to match — `make gen-check` diffs the generator's output against `todo/` byte-for-byte and fails CI on drift.
 
 ---
 

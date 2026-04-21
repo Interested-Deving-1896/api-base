@@ -35,18 +35,16 @@ func New(db *sqlx.DB) Repository {
 }
 
 type {{.NameLower}}Row struct {
-	ID          string    `db:"id"`
-	Title       string    `db:"title"`
-	Description string    `db:"description"`
-	Done        bool      `db:"done"`
-	CreatedAt   time.Time `db:"created_at"`
+	ID        string    `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func (r *repo) Create(ctx context.Context, t *domain.{{.NamePascal}}) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO {{.NamePlural}} (id, title, description, done, created_at)
-		VALUES ($1, $2, $3, $4, $5)
-	`, t.ID, t.Title, t.Description, t.Done, t.CreatedAt)
+		INSERT INTO {{.NamePlural}} (id, created_at, updated_at)
+		VALUES ($1, $2, $3)
+	`, t.ID, t.CreatedAt, t.UpdatedAt)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
@@ -60,7 +58,7 @@ func (r *repo) Create(ctx context.Context, t *domain.{{.NamePascal}}) error {
 func (r *repo) GetByID(ctx context.Context, id string) (*domain.{{.NamePascal}}, error) {
 	var row {{.NameLower}}Row
 	err := r.db.GetContext(ctx, &row, `
-		SELECT id, title, description, done, created_at
+		SELECT id, created_at, updated_at
 		FROM {{.NamePlural}} WHERE id = $1
 	`, id)
 	if err != nil {
@@ -70,10 +68,8 @@ func (r *repo) GetByID(ctx context.Context, id string) (*domain.{{.NamePascal}},
 		return nil, err
 	}
 	return &domain.{{.NamePascal}}{
-		ID:          row.ID,
-		Title:       row.Title,
-		Description: row.Description,
-		Done:        row.Done,
-		CreatedAt:   row.CreatedAt,
+		ID:        row.ID,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
 	}, nil
 }

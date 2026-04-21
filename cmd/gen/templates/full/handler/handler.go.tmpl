@@ -19,10 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 	govalidator "github.com/go-playground/validator/v10"
 
-	"{{.ModulePath}}/internal/modules/{{.NameLower}}/dto"
 	"{{.ModulePath}}/internal/modules/{{.NameLower}}/mapper"
 	"{{.ModulePath}}/internal/modules/{{.NameLower}}/service"
-	platformvalidator "{{.ModulePath}}/internal/platform/validator"
 	"{{.ModulePath}}/internal/shared/response"
 )
 
@@ -53,25 +51,11 @@ func New(svc service.Service, v *govalidator.Validate) *Handler {
 // Create godoc
 // @Summary      Create a {{.NameLower}}
 // @Tags         {{.NamePlural}}
-// @Accept       json
 // @Produce      json
-// @Param        body body dto.Create{{.NamePascal}}Request true "{{.NameLower}} payload"
 // @Success      201 {object} handler.SuccessResponse{data=dto.{{.NamePascal}}Response}
-// @Failure      422 {object} handler.ErrorResponse
 // @Router       /{{.NamePlural}} [post]
 func (h *Handler) Create(c *gin.Context) {
-	var req dto.Create{{.NamePascal}}Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		fields := platformvalidator.TranslateErrors(err)
-		if len(fields) > 0 {
-			response.ValidationError(c, fields)
-			return
-		}
-		response.Error(c, 400, "BAD_REQUEST", "invalid request body")
-		return
-	}
-
-	t, err := h.svc.Create(c.Request.Context(), req.Title, req.Description)
+	t, err := h.svc.Create(c.Request.Context())
 	if err != nil {
 		c.Error(err)
 		return

@@ -17,10 +17,8 @@ import (
 
 func To{{.NamePascal}}Response(t *domain.{{.NamePascal}}) dto.{{.NamePascal}}Response {
 	return dto.{{.NamePascal}}Response{
-		ID:          t.ID,
-		Title:       t.Title,
-		Description: t.Description,
-		Done:        t.Done,
-		CreatedAt:   t.CreatedAt,
+		ID:        t.ID,
+		CreatedAt: t.CreatedAt,
+		UpdatedAt: t.UpdatedAt,
 	}
 }

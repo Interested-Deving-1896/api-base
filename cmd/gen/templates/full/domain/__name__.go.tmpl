@@ -10,9 +10,7 @@ package domain
 import "time"
 
 type {{.NamePascal}} struct {
-	ID          string
-	Title       string
-	Description string
-	Done        bool
-	CreatedAt   time.Time
+	ID        string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
